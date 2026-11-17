@@ -1,0 +1,16 @@
+[Unit]
+Description=SMC-PAD MIDI Home Assistant Bridge
+After=network.target bluetooth.target sound.target
+Wants=bluetooth.target sound.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/smc-pad-ha
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=/bin/bash /home/pi/smc-pad-ha/SMC-PAD.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
