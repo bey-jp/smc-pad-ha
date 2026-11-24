@@ -1,6 +1,9 @@
 #!/bin/bash
 export PYTHONUNBUFFERED=1
 
+# このスクリプトと同じフォルダの midi.py を起動する
+DIR="$(cd "$(dirname "$0")" && pwd)"
+
 MAC_ADDR="XX:XX:XX:XX:XX:XX"
 
 while true; do
@@ -29,7 +32,7 @@ while true; do
     if [ $CONNECTED -eq 1 ]; then
         sleep 2
         echo "[SMC-PAD] Python MIDI ブリッジを起動します..."
-        /usr/bin/python3 /home/pi/project/SMC-PAD/midi.py
+        /usr/bin/python3 "${DIR}/midi.py"
     fi
 
     echo "[SMC-PAD] 切断されました。再接続を試みます..."

@@ -106,11 +106,14 @@ def _cc_flush(cc):
 #    これで回す向きと明るさの向きが必ず一致し、端まで必ず届く。
 GESTURE_IDLE = 1.2      # これ以上止まったら次は新しい回し始め
 RECENT_SENT = 10.0      # 直近に自分で送った値があればHAに聞かずそれを起点にする
+BRIGHT_UNKNOWN = -1     # 点灯中で明るさ不明 → 最後に自分で点けた値(無ければ127)を起点にする(2026-11-23)
 # CC -> (entity_id, 状態 -> 0〜127 に戻す関数)
 def _bright_to_v(st):
     if st.get("state") != "on":
         return 0
-    b = st.get("attributes", {}).get("brightness") or 0
+    b = st.get("attributes", {}).get("brightness")
+    if b is None:
+        return BRIGHT_UNKNOWN   # 点灯中だが明るさを返さない電球(廊下の CozyLife など)
     return max(1, round((b / 255) ** 0.5 * 127))   # HA側の (v/127)^2*100 の逆
 def _ct_to_v(st):
     k = st.get("attributes", {}).get("color_temp_kelvin")
@@ -131,7 +134,7 @@ KNOB_SOURCE = {
     41: ("light.floor_lamp_0a2a", _ct_to_v),
     43: ("fan.zhimi_fa1_f5db_fan", _fan_to_v),
 }
-_knob = {}  # cc -> {raw_prev, t_prev, v, t_sent, anchor_raw, anchor_v, dir}
+_knob = {}  # cc -> {raw_prev, t_prev, v, v_on, t_sent, anchor_raw, anchor_v, dir}
 
 
 def _ha_state_v(cc):
@@ -148,13 +151,15 @@ def _ha_state_v(cc):
 
 def _knob_value(cc, raw):
     now = time.time()
-    k = _knob.setdefault(cc, {"raw_prev": None, "t_prev": 0, "v": raw, "t_sent": 0,
+    k = _knob.setdefault(cc, {"raw_prev": None, "t_prev": 0, "v": raw, "v_on": None, "t_sent": 0,
                               "anchor_raw": raw, "anchor_v": raw, "dir": 0})
     new_gesture = k["raw_prev"] is None or now - k["t_prev"] > GESTURE_IDLE
     if new_gesture:
         base = k["v"] if now - k["t_sent"] < RECENT_SENT else None
         if base is None:
             base = _ha_state_v(cc)
+            if base == BRIGHT_UNKNOWN:
+                base = k["v_on"] if k["v_on"] else 127
         if base is None:
             base = k["v"]
         # 回し始めの1目盛り分の向きは前回位置との差で判断
@@ -172,6 +177,8 @@ def _knob_value(cc, raw):
         v = 0 if ar <= 0 else av - (ar - raw) * av / ar
     v = int(round(min(127, max(0, v))))
     k["raw_prev"], k["t_prev"], k["v"], k["t_sent"] = raw, now, v, now
+    if v > 0:
+        k["v_on"] = v
     return v
 
 
