@@ -126,15 +126,55 @@ SMC-PAD のノブは本体が 0〜127 の「位置」を覚えていて、外か
 
 ## 3D プリントのラベル
 
+STL / SCAD はすべて [`overlay/`](overlay/) フォルダに入っています。
+
 | ファイル | 内容 |
 |---|---|
-| `overlay/pad_plate_full_v6.scad` / `pad_plate_full_v6_t3.5.stl` | パッド 16 個用の漢字ラベル（131×147mm、厚み 3.5mm）。文字は貫通穴で、パッドの LED が透ける |
-| `overlay/knob_plate.scad` / `knob_plate_inlay.stl` | ノブ用ラベル板（57×147mm、厚み 2.8mm）。単色プリンターで 2 色刷り |
-| `overlay/bridge.py` | 「口」「田」のような閉じた部分が抜け落ちないよう、自動でブリッジ（つなぎ線）を入れる補助スクリプト |
+| [`overlay/pad_plate_full_v6_t3.5.stl`](overlay/pad_plate_full_v6_t3.5.stl) | パッド 16 個用の漢字ラベル（筆者の字入り。131×147mm、厚み 3.5mm）。文字は貫通穴で、パッドの LED が透ける |
+| [`overlay/knob_plate_inlay.stl`](overlay/knob_plate_inlay.stl) | ノブ用ラベル板（筆者の字入り。57×147mm、厚み 2.8mm）。単色プリンターで 2 色刷り |
+| [`overlay/pad_plate_blank_t3.5.stl`](overlay/pad_plate_blank_t3.5.stl) | **無地のパッド板**（字なし）。好きな字を入れる用 |
+| [`overlay/knob_plate_blank.stl`](overlay/knob_plate_blank.stl) | **無地のノブ板**（穴と目盛りだけ）。好きな字を入れる用 |
+| `overlay/pad_plate_full_v6.scad` / `overlay/knob_plate.scad` | 上の STL の元データ（OpenSCAD） |
+| `overlay/bridge.py` | 「口」「田」のような閉じた部分が抜け落ちないよう、ブリッジ（つなぎ線）を探す補助スクリプト |
 
-- 自分の字にするには SCAD の `grid_labels`（パッド）/ `labels`（ノブ）を書き換えて OpenSCAD で書き出します。フォントは Noto Sans CJK JP Bold（[notofonts/noto-cjk](https://github.com/notofonts/noto-cjk) の `NotoSansCJK-Bold.ttc`）。OpenSCAD は 2026.11-RC0 で確認。
-- ノブ板の 2 色刷り（Creality K1C で確認）: 字の面を下にして印刷。0.8mm の層の前で一時停止して黒→白、1.6mm の層の前で一時停止して白→黒。
-- 寸法は筆者の SMC-PAD の実測値です。
+Tinkercad でも公開しています（そのまま改造できます）:
+[パッド](https://www.tinkercad.com/things/0eFnhjktVFl-smc-pad-pad) /
+[ノブ](https://www.tinkercad.com/things/gt6rj3dHdYj-smc-pad-knob) /
+[壁掛けスタンド](https://www.tinkercad.com/things/c3DjnvHw79C-smc-pad-stand)
+
+寸法は筆者の SMC-PAD の実測値です。
+
+### 好きな字に変える
+
+**方法 A: OpenSCAD で SCAD を書き換える（漢字ならこちらがおすすめ）**
+
+1. [OpenSCAD](https://github.com/openscad/openscad/releases)（2026.11-RC0 で確認）と、フォント Noto Sans CJK JP Bold（[notofonts/noto-cjk](https://github.com/notofonts/noto-cjk) の `NotoSansCJK-Bold.ttc`）を入れる
+2. パッド板: `pad_plate_full_v6.scad` の `grid_labels` を書き換える（上の段から 4 文字ずつ。`"◯"` は空欄、矢印が要らなければ `arrow_on = false`）
+   ```
+   grid_labels = [
+     ["机", "床", "温", "植"],
+     ["和", "風", "洋", "風"],
+     ["廊", "洗", "厨", "隠"],
+     ["錠", "門", "事", "全"],
+   ];
+   ```
+3. ノブ板: `knob_plate.scad` の `labels` の 1 つ目の字を書き換える（並びは 下段左=1, 下段右=2, … 上段右=8）
+4. F6（レンダリング）→ F7（STL を書き出す）
+5. 「口」「田」「回」のように**囲まれた部分がある字は、中が抜け落ちます**。`bridge_table` につなぎ線を足します（例: `["錠", [[-45,0]]]` は斜め 1 本）。細かすぎる字（「鍵」など）は潰れるので、簡単な字を選ぶのがコツです
+
+**方法 B: 無地の STL に、ほかのソフトで字を入れる（Tinkercad など）**
+
+- パッド板（`pad_plate_blank_t3.5.stl`）: 表は平らで、各パッドの上は厚み 0.5mm の天井です。字を「穴」にして**板を貫通**させると、LED の光が字の形に透けます
+  - 板の中心を原点とすると、パッドの中心は X・Y とも −48.6 / −16.2 / +16.2 / +48.6 mm（パッドは約 30.9mm 角）。字は 20mm 前後が目安
+  - 囲まれた部分の抜け落ちは方法 A と同じなので、細い棒でつなぐ
+- ノブ板（`knob_plate_blank.stl`）: 字を表面から 0.6mm 彫り込む（inlay）。各ノブの穴の約 16mm 下が字の位置。2 色刷りは下の手順で
+- ソフトによっては日本語の文字が入れられないことがあります。その場合は方法 A を使ってください
+
+### 印刷のコツ
+
+- パッド板: 字は貫通穴なので、光を通さない色で印刷すると字だけが光ります（筆者は TPU を想定して設計）
+- ノブ板の 2 色刷り（Creality K1C で確認）: 字の面を下にして、0.2mm 積層で印刷。0.8mm の層の前で一時停止して黒→白、1.6mm の層の前で一時停止して白→黒
+- 字は実寸 10mm 以上に。4〜6mm の字は潰れました
 
 ## 注意
 
