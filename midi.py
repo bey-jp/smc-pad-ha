@@ -10,6 +10,10 @@ from flask import Flask, request, jsonify
 # ==================== 設定エリア ====================
 HA_URL = "http://homeassistant.local:8123"
 HA_TOKEN = "YOUR_LONG_LIVED_ACCESS_TOKEN"  # HAのプロフィール→長期アクセストークン
+# 同じフォルダに ha_token.txt があれば、そちらを使う（トークンをこのファイルに書かなくて済む）
+_TOKEN_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ha_token.txt")
+if os.path.exists(_TOKEN_FILE):
+    HA_TOKEN = open(_TOKEN_FILE, encoding="utf-8").read().strip()
 EVENT_NAME = "smc_pad_event"
 LISTEN_PORT = 5001
 # ====================================================

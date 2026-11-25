@@ -9,6 +9,10 @@ Bluetooth MIDI パッド **M-VAVE SMC-PAD** を、Home Assistant の物理リモ
 
 ![パッド用ラベル](overlay/preview_v6_top.png)
 
+> **AI にセットアップしてもらう**: Claude Code などコマンドを実行できる AI に
+> 「https://github.com/bey-jp/smc-pad-ha/blob/main/AI_INSTRUCTIONS.md を読んで、その手順どおりに私の SMC-PAD を Home Assistant のスイッチにしてください。」
+> と送ると、ペアリングから自動化づくりまで案内してくれます（[AI_INSTRUCTIONS.md](AI_INSTRUCTIONS.md)）。
+
 ## 仕組み
 
 ```
@@ -61,7 +65,8 @@ HA の左下のユーザー名 → **セキュリティ** → **長期有効ア�
 
 ### 5. `midi.py` と `SMC-PAD.sh` を書き換える
 
-- `midi.py` の `HA_URL`（例 `http://192.168.0.10:8123`）と `HA_TOKEN`（4 のトークン）
+- `midi.py` の `HA_URL`（例 `http://192.168.0.10:8123`）
+- トークン（4）は、同じフォルダに `ha_token.txt` を作って貼り付けるのがおすすめ（`midi.py` が自動で読みます。`HA_TOKEN` に直接書いてもよい）
 - `midi.py` の `KNOB_SOURCE`（ノブで動かすライトの entity_id。ノブを使わないなら空でよい）
 - `SMC-PAD.sh` の `MAC_ADDR`（1 で調べた MAC）
 
