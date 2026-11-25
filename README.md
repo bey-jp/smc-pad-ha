@@ -135,6 +135,7 @@ STL / SCAD はすべて [`overlay/`](overlay/) フォルダに入っています
 | [`overlay/pad_plate_blank_t3.5.stl`](overlay/pad_plate_blank_t3.5.stl) | **無地のパッド板**（字なし）。好きな字を入れる用 |
 | [`overlay/knob_plate_blank.stl`](overlay/knob_plate_blank.stl) | **無地のノブ板**（穴と目盛りだけ）。好きな字を入れる用 |
 | `overlay/pad_plate_full_v6.scad` / `overlay/knob_plate.scad` | 上の STL の元データ（OpenSCAD） |
+| [`overlay/custom_from_blank.scad`](overlay/custom_from_blank.scad) | 無地の STL に好きな字を入れる OpenSCAD ファイル（下の方法 A） |
 | `overlay/bridge.py` | 「口」「田」のような閉じた部分が抜け落ちないよう、ブリッジ（つなぎ線）を探す補助スクリプト |
 
 Tinkercad でも公開しています（そのまま改造できます）:
@@ -146,7 +147,24 @@ Tinkercad でも公開しています（そのまま改造できます）:
 
 ### 好きな字に変える
 
-**方法 A: OpenSCAD で SCAD を書き換える（漢字ならこちらがおすすめ）**
+**方法 A: 無地の STL に字を入れる（いちばん手軽）**
+
+[`overlay/custom_from_blank.scad`](overlay/custom_from_blank.scad) は、無地の STL を読み込んで字の形をくり抜くだけの短いファイルです。
+
+1. `custom_from_blank.scad` と、無地の STL（`pad_plate_blank_t3.5.stl` / `knob_plate_blank.stl`）を同じフォルダに置いて OpenSCAD で開く
+2. `part` を `"pad"`（パッド板）か `"knob"`（ノブ板）にする
+3. `pad_labels`（上の段から 4 文字ずつ）または `knob_labels`（ノブ 1〜8 の順）の字を書き換える。字の無い所は `""`
+4. 囲まれた部分がある字は `bridges` につなぎ線を足す（まず斜め 1 本 `[[45, 0]]`、ダメならバッテン `[[45, 0], [-45, 0]]`）
+5. F6（レンダリング）→ F7（STL を書き出す）
+
+パッド板の字は板を貫通する穴になり、ノブ板の字は表から 0.6mm 彫り込まれます（2 色刷り用）。
+中身の字のままで書き出すと、筆者の板と同じものになります（矢印を除く）。
+
+![無地の板に字を入れた例](overlay/preview_custom_from_blank.png)
+
+Tinkercad などほかのソフトで字を入れる場合: パッドの中心は、板の中心を原点として X・Y とも −48.6 / −16.2 / +16.2 / +48.6 mm（パッドは約 30.9mm 角、字は 20mm 前後が目安）。ソフトによっては日本語が入らないことがあります。
+
+**方法 B: 元の SCAD を書き換える（寸法や矢印まで変えたい人向け）**
 
 1. [OpenSCAD](https://github.com/openscad/openscad/releases)（2026.11-RC0 で確認）と、フォント Noto Sans CJK JP Bold（[notofonts/noto-cjk](https://github.com/notofonts/noto-cjk) の `NotoSansCJK-Bold.ttc`）を入れる
 2. パッド板: `pad_plate_full_v6.scad` の `grid_labels` を書き換える（上の段から 4 文字ずつ。`"◯"` は空欄、矢印が要らなければ `arrow_on = false`）
@@ -161,14 +179,6 @@ Tinkercad でも公開しています（そのまま改造できます）:
 3. ノブ板: `knob_plate.scad` の `labels` の 1 つ目の字を書き換える（並びは 下段左=1, 下段右=2, … 上段右=8）
 4. F6（レンダリング）→ F7（STL を書き出す）
 5. 「口」「田」「回」のように**囲まれた部分がある字は、中が抜け落ちます**。`bridge_table` につなぎ線を足します（例: `["錠", [[-45,0]]]` は斜め 1 本）。細かすぎる字（「鍵」など）は潰れるので、簡単な字を選ぶのがコツです
-
-**方法 B: 無地の STL に、ほかのソフトで字を入れる（Tinkercad など）**
-
-- パッド板（`pad_plate_blank_t3.5.stl`）: 表は平らで、各パッドの上は厚み 0.5mm の天井です。字を「穴」にして**板を貫通**させると、LED の光が字の形に透けます
-  - 板の中心を原点とすると、パッドの中心は X・Y とも −48.6 / −16.2 / +16.2 / +48.6 mm（パッドは約 30.9mm 角）。字は 20mm 前後が目安
-  - 囲まれた部分の抜け落ちは方法 A と同じなので、細い棒でつなぐ
-- ノブ板（`knob_plate_blank.stl`）: 字を表面から 0.6mm 彫り込む（inlay）。各ノブの穴の約 16mm 下が字の位置。2 色刷りは下の手順で
-- ソフトによっては日本語の文字が入れられないことがあります。その場合は方法 A を使ってください
 
 ### 印刷のコツ
 
